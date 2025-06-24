@@ -14,3 +14,5 @@ if __name__ == "__main__":
 
     framework = PgFramework(application=None)
     framework.generate(grammar_string, reserved_words_list)
+    framework.select_parser("Parser")
+    framework.parse(["id", "+", "id"], verbose=True)

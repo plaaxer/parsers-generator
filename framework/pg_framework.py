@@ -1,53 +1,50 @@
 from framework.context_free_grammar import ContextFreeGrammar
-
+from framework.parser_generator import ParserGenerator
 class PgFramework:
     def __init__(self, application):
         self.applicationInterface = application
-        self.grammar = None # Atributo para armazenar o objeto da gramática
+        self.parsers = {}
+        self.current_parser = None
 
-    @staticmethod
-    def _parse_from_string(grammar_str: str, reserved_words: list) -> ContextFreeGrammar:
-        """
-        Método auxiliar estático que processa uma string e retorna um objeto ContextFreeGrammar.
-        """
-        productions_dict = {}
-        non_terminals = set()
-        all_symbols = set()
-        start_symbol = None
+    def generate(self, context_free_grammar_str: str, reserved_words: list, name: str = "Parser"):
+        """Endpoint para gerar o parser SLR a partir de uma string de gramática e palavras reservadas."""
 
-        lines = grammar_str.strip().split('\n')
-        for line in lines:
-            if not line.strip():
-                continue
-            
-            # O formato da gramática é especificado como "<Não terminal> ::= <Corpo da produção>" 
-            head, body_str = line.split('::=')
-            head = head.strip()
-            body_symbols = body_str.strip().split()
+        if self.parsers.get(name):
+            raise ValueError(f"Parser com o nome '{name}' já existe. Escolha outro nome.")
 
-            non_terminals.add(head)
-            if start_symbol is None:
-                start_symbol = head
-            
-            all_symbols.update(body_symbols)
-            productions_dict.setdefault(head, []).append(body_symbols)
+        grammar = ParserGenerator._parse_grammar_from_string(context_free_grammar_str, reserved_words)
 
-        terminals = all_symbols - non_terminals
-        # A lista de palavras reservadas também compõe os terminais 
-        terminals.update(reserved_words)
+        print("\n--- Gramática Carregada e Estruturada ---")
+        print(grammar)
 
-        return ContextFreeGrammar(
-            non_terminals=non_terminals,
-            terminals=terminals,
-            productions=productions_dict,
-            start_symbol=start_symbol
-        )
+        slr_parser = ParserGenerator.generate_parser(grammar, name)
 
-    def generate(self, context_free_grammar_str: str, reserved_words: list):
-        """
-        Orquestra a criação do analisador. Começa processando a gramática de entrada.
-        """
-        self.grammar = PgFramework._parse_from_string(context_free_grammar_str, reserved_words)
+        print("\n--- Analisador SLR Gerado ---")
+        print(slr_parser)
 
-        print("--- Gramática Carregada e Estruturada ---")
-        print(self.grammar)
+        self.parsers[name] = slr_parser
+        self.current_parser = slr_parser
+
+    
+    def parse(self, tokens: list, verbose: bool = False):
+
+        if not self.current_parser:
+            raise ValueError("Nenhum parser selecionado.")
+        
+        return self.current_parser.parse(tokens, verbose)
+
+    # métodos de manipulação do front-end
+
+    def get_current_parser(self):
+        if not self.current_parser:
+            return "Nenhum parser selecionado."
+        return self.current_parser.name
+    
+    def get_parsers(self):
+        return list(self.parsers.keys())
+    
+    def select_parser(self, name: str):
+        if name not in self.parsers:
+            raise ValueError(f"Parser com o nome '{name}' não encontrado.")
+        self.current_parser = self.parsers[name]
+
