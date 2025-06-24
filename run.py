@@ -1,18 +1,27 @@
-from framework.pg_framework import PgFramework
+# from src.application import Application
+from src.applicationGUI import ApplicationGUI
+import tkinter as tk
 
 if __name__ == "__main__":
-    grammar_string = """
-    E ::= E + T
-    E ::= T
-    T ::= T * F
-    T ::= F
-    F ::= ( E )
-    F ::= id
-    """
+    root = tk.Tk()
+    app = ApplicationGUI(root)
+    app.run()
 
-    reserved_words_list = []
-
-    framework = PgFramework(application=None)
-    framework.generate(grammar_string, reserved_words_list)
-    framework.select_parser("Parser")
-    framework.parse(["id", "+", "id"], verbose=True)
+# from framework.pg_framework import PgFramework
+#
+# if __name__ == "__main__":
+#     grammar_string = """
+#     E ::= E + T
+#     E ::= T
+#     T ::= T * F
+#     T ::= F
+#     F ::= ( E )
+#     F ::= id
+#     """
+#
+#     reserved_words_list = []
+#
+#     framework = PgFramework(application=None)
+#     framework.generate(grammar_string, reserved_words_list)
+#     framework.select_parser("Parser")
+#     framework.parse(["id", "+", "id"], verbose=True)

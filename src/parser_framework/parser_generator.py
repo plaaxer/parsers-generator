@@ -1,6 +1,5 @@
-import pprint
-from framework.context_free_grammar import ContextFreeGrammar
-from framework.slr_parser import SLRParser
+from src.parser_framework.context_free_grammar import ContextFreeGrammar
+from src.parser_framework.slr_parser import SLRParser
 
 EPSILON = 'ε'
 END_OF_INPUT = '$'

@@ -1,5 +1,6 @@
-from framework.context_free_grammar import ContextFreeGrammar
-from framework.parser_generator import ParserGenerator
+from src.parser_framework.parser_generator import ParserGenerator
+
+
 class PgFramework:
     def __init__(self, application):
         self.applicationInterface = application
@@ -10,9 +11,11 @@ class PgFramework:
         """Endpoint para gerar o parser SLR a partir de uma string de gramática e palavras reservadas."""
 
         if self.parsers.get(name):
-            raise ValueError(f"Parser com o nome '{name}' já existe. Escolha outro nome.")
+            raise ValueError(
+                f"Parser com o nome '{name}' já existe. Escolha outro nome.")
 
-        grammar = ParserGenerator._parse_grammar_from_string(context_free_grammar_str, reserved_words)
+        grammar = ParserGenerator._parse_grammar_from_string(
+            context_free_grammar_str, reserved_words)
 
         print("\n--- Gramática Carregada e Estruturada ---")
         print(grammar)
@@ -25,12 +28,11 @@ class PgFramework:
         self.parsers[name] = slr_parser
         self.current_parser = slr_parser
 
-    
     def parse(self, tokens: list, verbose: bool = False):
 
         if not self.current_parser:
             raise ValueError("Nenhum parser selecionado.")
-        
+
         return self.current_parser.parse(tokens, verbose)
 
     # métodos de manipulação do front-end
@@ -39,12 +41,11 @@ class PgFramework:
         if not self.current_parser:
             return "Nenhum parser selecionado."
         return self.current_parser.name
-    
+
     def get_parsers(self):
         return list(self.parsers.keys())
-    
+
     def select_parser(self, name: str):
         if name not in self.parsers:
             raise ValueError(f"Parser com o nome '{name}' não encontrado.")
         self.current_parser = self.parsers[name]
-

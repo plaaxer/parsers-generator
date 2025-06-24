@@ -1,0 +1,1 @@
+LEXICAL_ANALYZER_DEFAULT_NAME = "lexical_analyzer"
