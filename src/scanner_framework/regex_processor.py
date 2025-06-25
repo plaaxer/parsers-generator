@@ -1,4 +1,4 @@
-from src.lexical_framework.automatas.deterministic_automata import DeterministicFiniteAutomata
+from src.scanner_framework.automatas.deterministic_automata import DeterministicFiniteAutomata
 from typing import Set, Dict, Tuple, List, Optional, FrozenSet
 
 

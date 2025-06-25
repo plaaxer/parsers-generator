@@ -1,4 +1,4 @@
-from src.lexical_framework.automatas.automata import Automata
+from src.scanner_framework.automatas.automata import Automata
 
 class NonDeterministicFiniteAutomata(Automata):
     EPSILON = '&'  # Convention for representing epsilon transitions

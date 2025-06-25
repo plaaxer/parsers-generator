@@ -1,15 +1,15 @@
 import os
-from src.lexical_framework.regex_processor import RegexProcessor
-from src.lexical_framework.lexical_analyzer import LexicalAnalyzer
-import src.lexical_framework.config as config
-import src.lexical_framework.utils as utils
+from src.scanner_framework.regex_processor import RegexProcessor
+from src.scanner_framework.lexical_analyzer import LexicalAnalyzer
+import src.scanner_framework.config as config
+import src.scanner_framework.utils as utils
 
 """"
 Esta classe será a interface do framework de geração de analisadores léxicos.
 No caso, ao menos por enquanto, Application será algum tipo de CLI, mas podemos adicionar uma interface gráfica depois.
 """
 
-class AgFramework:
+class SgFramework:
     def __init__(self, application):
         self.application = application
         self.loaded_lexical_analyzers = []

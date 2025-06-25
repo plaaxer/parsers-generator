@@ -1,5 +1,5 @@
-from src.lexical_framework.automatas.non_deterministic_automata import NonDeterministicFiniteAutomata
-from src.lexical_framework.automatas.deterministic_automata import DeterministicFiniteAutomata
+from src.scanner_framework.automatas.non_deterministic_automata import NonDeterministicFiniteAutomata
+from src.scanner_framework.automatas.deterministic_automata import DeterministicFiniteAutomata
 
 
 

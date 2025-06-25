@@ -1,14 +1,19 @@
 from src.symbol_table import SymbolTable
-from src.lexical_framework.gal_framework import AgFramework
+from src.scanner_framework.sg_framework import SgFramework
 from src.parser_framework.pg_framework import PgFramework
 
 
 class Application:
     def __init__(self):
-        self.ag_framework = AgFramework(self)
+        self.sg_framework = SgFramework(self)
         self.pg_framework = PgFramework(self)
-        self.symbol_table = SymbolTable()
+        self.symbol_table = SymbolTable([])
         self.run()
+
+    def analyze(self, input_str):
+        tokens = self.sg_framework.analyze(input_str)
+        # self.pg_framework.parse(tokens, verbose=True)
+        pass
 
     def run(self):
         pass

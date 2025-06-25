@@ -1,4 +1,4 @@
-from src.lexical_framework.automatas.automata import Automata
+from src.scanner_framework.automatas.automata import Automata
 
 class DeterministicFiniteAutomata(Automata):
     def __init__(self, states, alphabet, transitions, start_state, accept_states):

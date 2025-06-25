@@ -90,6 +90,8 @@ class SLRParser:
                 # Isso não deve acontecer
                 raise RuntimeError("Ação desconhecida na tabela de parsing.")
             
+    def get_info(self):
+        return f"Analisador Sintático: {self.name}\n{self.__repr__}"
 
     def __repr__(self):
         prod_str_list = []
