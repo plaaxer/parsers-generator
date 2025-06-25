@@ -1,7 +1,6 @@
 true: true
-false: false
 or: or
 and: and
-not: not
+not: (not|false)*
 (: \(
 ): \)

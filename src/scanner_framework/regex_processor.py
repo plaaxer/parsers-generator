@@ -25,6 +25,48 @@ class SyntaxTreeNode:
 class RegexProcessor:
 
     @staticmethod
+    def _handle_escapes(regex: str) -> Tuple[str, Dict[str, str]]:
+        """
+        Substitui sequências de escape (e.g., '\(', '\*') por caracteres placeholder
+        de uso privado para que não sejam processados como operadores.
+
+        Retorna a regex processada e um mapa do placeholder para o caractere original.
+        """
+        processed_regex = []
+        placeholder_map: Dict[str, str] = {}
+        # Usamos a Área de Uso Privado do Unicode para placeholders seguros
+        next_placeholder_code = 0xE000 
+        
+        i = 0
+        n = len(regex)
+        while i < n:
+            if regex[i] == '\\' and i + 1 < n:
+                original_char = regex[i + 1]
+                
+                # Verifica se já existe um placeholder para este caractere
+                # Isso é ineficiente, mas mais simples. Para otimizar, poderíamos usar um mapa reverso.
+                found_placeholder = None
+                for p, o_char in placeholder_map.items():
+                    if o_char == original_char:
+                        found_placeholder = p
+                        break
+                
+                if found_placeholder:
+                    placeholder = found_placeholder
+                else:
+                    placeholder = chr(next_placeholder_code)
+                    placeholder_map[placeholder] = original_char
+                    next_placeholder_code += 1
+
+                processed_regex.append(placeholder)
+                i += 2  # Pula o caractere de escape e o caractere escapado
+            else:
+                processed_regex.append(regex[i])
+                i += 1
+                
+        return "".join(processed_regex), placeholder_map
+    
+    @staticmethod
     def _expand_char_classes(regex: str) -> str:
         """
         Transforma expressões de classe de caracteres como [a-zA-Z0-9] em
@@ -70,8 +112,8 @@ class RegexProcessor:
         return "".join(expanded)
 
     @staticmethod
-    def _preprocess_regex(regex: str) -> str:
-        """adiciona '.' entre dois operadores ou entre operador e '(' ou entre ')' e '('."""
+    def _preprocess_regex(regex: str, literal_placeholders: Set[str]) -> str:
+        """Adiciona '.' entre operadores. Placeholders são tratados como literais."""
         processed_regex = []
         if not regex:
             return ""
@@ -79,14 +121,18 @@ class RegexProcessor:
             processed_regex.append(char)
             if i < len(regex) - 1:
                 next_char = regex[i+1]
-                if (char.isalnum() or char in '*?+)') and \
-                   (next_char.isalnum() or next_char == '('):
+                
+                is_char_operand = char.isalnum() or char in literal_placeholders
+                is_next_char_operand = next_char.isalnum() or next_char in literal_placeholders
+
+                if (is_char_operand or char in '*?+)') and \
+                   (is_next_char_operand or next_char == '('):
                     processed_regex.append('.')
         return "".join(processed_regex)
 
     @staticmethod
-    def _parse_regex_to_postfix(regex: str) -> str:
-
+    def _parse_regex_to_postfix(regex: str, literal_placeholders: Set[str]) -> str:
+        """Converte para postfix. Placeholders são tratados como literais."""
         if not regex:
             return ""
 
@@ -95,7 +141,7 @@ class RegexProcessor:
         precedence: Dict[str, int] = {'|': 1, '.': 2, '*': 3, '?': 3, '+': 3}
 
         for token in regex:
-            if token.isalnum() or token == '#':
+            if token.isalnum() or token == '#' or token in literal_placeholders:
                 postfix.append(token)
             elif token == '(':
                 op_stack.append(token)
@@ -119,7 +165,8 @@ class RegexProcessor:
 
     @staticmethod
     def _build_syntax_tree(
-        postfix_regex: str
+        postfix_regex: str,
+        placeholder_map: Dict[str, str]
     ) -> Tuple[Optional[SyntaxTreeNode], Dict[int, str], Set[str], Optional[int]]:
 
         SyntaxTreeNode._position_counter = 1
@@ -132,11 +179,15 @@ class RegexProcessor:
             return None, symbols_map, alphabet, end_marker_pos
 
         for token in postfix_regex:
-            if token.isalnum(): # literal
-                node = SyntaxTreeNode('LITERAL', value=token)
+            is_literal = token.isalnum()
+            is_placeholder = token in placeholder_map
+
+            if is_literal or is_placeholder:
+                original_value = placeholder_map.get(token, token)
+                node = SyntaxTreeNode('LITERAL', value=original_value)
                 if node.position is not None:
-                    symbols_map[node.position] = token
-                alphabet.add(token)
+                    symbols_map[node.position] = original_value
+                alphabet.add(original_value)
                 stack.append(node)
             elif token == '#': # End marker
                 node = SyntaxTreeNode('ENDMARKER', value='#')
@@ -211,7 +262,7 @@ class RegexProcessor:
             node.lastpos = c1.lastpos.copy()
         elif node.node_type == 'PLUS': # c+
             c1 = node.children[0]
-            node.nullable = c1.nullable # para c+ ser nulo, c deve ser nulo
+            node.nullable = c1.nullable
             node.firstpos = c1.firstpos.copy()
             node.lastpos = c1.lastpos.copy()
         elif node.node_type == 'OPTION': # c?
@@ -227,7 +278,6 @@ class RegexProcessor:
         followpos_table: Dict[int, Set[int]]
     ) -> None:
         """ Computa o followpos para cada nó da árvore recursivamente. """
-
         if node is None:
             return
 
@@ -235,7 +285,6 @@ class RegexProcessor:
             RegexProcessor._compute_followpos(child, followpos_table)
 
         if node.node_type == 'CONCAT':
-
             c1, c2 = node.children[0], node.children[1]
             for i in c1.lastpos:
                 followpos_table.setdefault(i, set()).update(c2.firstpos)
@@ -254,46 +303,56 @@ class RegexProcessor:
     @staticmethod
     def regex_to_dfa(regex: str) -> DeterministicFiniteAutomata:
         """Converte uma expressão regular em um autômato finito determinístico (DFA)."""
+        
+        # 0a. Lida com sequências de escape, substituindo-as por placeholders
+        escaped_regex, placeholder_map = RegexProcessor._handle_escapes(regex)
+        literal_placeholders = set(placeholder_map.keys())
 
-        # 0. Expande classes de caracteres [a-zA-Z0-9] para uniões explícitas
-        if regex:
+        # 0b. Expande classes de caracteres [a-zA-Z0-9] para uniões explícitas
+        if escaped_regex:
             try:
-                regex = RegexProcessor._expand_char_classes(regex)
+                expanded_regex = RegexProcessor._expand_char_classes(escaped_regex)
             except ValueError as e:
                 raise ValueError(f"Error to expand char classes '{regex}': {e}")
-        print("regex", regex)
+        else:
+            expanded_regex = ""
+        
+        print("Processed Regex (with placeholders and expansions):", expanded_regex)
 
-        # 1. Preprocessa a expressão regular
-        if not regex: # Para o caso de string vazia
+        # Trata o caso de regex vazia
+        if not expanded_regex:
             q_empty_accept = "D0"
             return DeterministicFiniteAutomata(
                 states={q_empty_accept}, alphabet=set(), transitions={},
                 start_state=q_empty_accept, accept_states={q_empty_accept}
             )
 
-        preprocessed_original_regex = RegexProcessor._preprocess_regex(regex)
-        if not preprocessed_original_regex: # e.g. "()" ou "" -> leads to ""
-             q_empty_accept = "D0" # Considerar como string vazia
+        # 1. Preprocessa a expressão regular (adiciona '.')
+        preprocessed_regex = RegexProcessor._preprocess_regex(expanded_regex, literal_placeholders)
+        if not preprocessed_regex:
+             q_empty_accept = "D0"
              return DeterministicFiniteAutomata(
-                states={q_empty_accept}, alphabet=set(), transitions={},
-                start_state=q_empty_accept, accept_states={q_empty_accept}
-            )
+                 states={q_empty_accept}, alphabet=set(), transitions={},
+                 start_state=q_empty_accept, accept_states={q_empty_accept}
+             )
 
-        postfix_original = RegexProcessor._parse_regex_to_postfix(preprocessed_original_regex)
+        # Converte para postfix
+        postfix_original = RegexProcessor._parse_regex_to_postfix(preprocessed_regex, literal_placeholders)
         if not postfix_original:
-             q_empty_accept = "D0" # também tratar como string vazia
-             return DeterministicFiniteAutomata(
+            q_empty_accept = "D0"
+            return DeterministicFiniteAutomata(
                 states={q_empty_accept}, alphabet=set(), transitions={},
                 start_state=q_empty_accept, accept_states={q_empty_accept}
             )
-        augmented_postfix = postfix_original + "#" + "." # R_postfix # .
-        
+            
+        augmented_postfix = postfix_original + "#" + "."
+
         try:
             # 2. Constrói a árvore sintática
             root, symbols_map, alphabet, end_marker_pos = \
-                RegexProcessor._build_syntax_tree(augmented_postfix)
+                RegexProcessor._build_syntax_tree(augmented_postfix, placeholder_map)
 
-            if root is None or end_marker_pos is None: # teoricamente não deveria acontecer mas...
+            if root is None or end_marker_pos is None:
                 raise ValueError("Failed to build syntax tree or find end marker.")
 
             # 3. Computa nullable, firstpos, lastpos
@@ -321,30 +380,21 @@ class RegexProcessor:
                 return dfa_state_name_map[pos_set]
 
             initial_pos_set = frozenset(root.firstpos)
-            if not initial_pos_set:
-                if root.nullable:
-                    d0_name = get_dfa_name(initial_pos_set)
-                    dfa_states.add(d0_name)
-                    dfa_accept_states.add(d0_name)
-                    return DeterministicFiniteAutomata(
-                        states=dfa_states, alphabet=alphabet, transitions=dfa_transitions,
-                        start_state=d0_name, accept_states=dfa_accept_states
-                    )
-                else:
-                    d0_name = get_dfa_name(initial_pos_set)
-                    dfa_states.add(d0_name)
-                    return DeterministicFiniteAutomata(
-                        states=dfa_states, alphabet=alphabet, transitions=dfa_transitions,
-                        start_state=d0_name, accept_states=set()
-                    )
-
+            if not initial_pos_set: # Lida com linguagem vazia ou que aceita apenas a string vazia
+                d0_name = get_dfa_name(initial_pos_set)
+                dfa_states.add(d0_name)
+                start_state = d0_name
+                accept_states = {d0_name} if root.nullable else set()
+                return DeterministicFiniteAutomata(
+                    states=dfa_states, alphabet=alphabet, transitions=dfa_transitions,
+                    start_state=start_state, accept_states=accept_states
+                )
 
             dfa_start_state_name = get_dfa_name(initial_pos_set)
             dfa_states.add(dfa_start_state_name)
 
             unprocessed_dfa_states: List[FrozenSet[int]] = [initial_pos_set]
             processed_dfa_sets: Set[FrozenSet[int]] = set()
-
 
             while unprocessed_dfa_states:
                 current_pos_frozenset = unprocessed_dfa_states.pop(0)
@@ -382,4 +432,3 @@ class RegexProcessor:
 
         except ValueError as e:
             raise ValueError(f"Falha ao processar regex '{regex}': {e}")
-        # parsed_alphabet = set(c for c in regex if c.isalnum())
