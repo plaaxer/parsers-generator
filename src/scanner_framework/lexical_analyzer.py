@@ -286,8 +286,7 @@ class LexicalAnalyzer():
                 else:
                     # Check symbol table for reserved words/specific lexemes
                     # This allows "if" (base_token_type 'ID') to become 'PR_IF'
-                    overriding_token_type = self.application.symbol_table.lookup(
-                        final_lexeme)
+                    overriding_token_type = self.application.symbol_table.lookup(final_lexeme)
                     if overriding_token_type:
                         # Potentially add a check: is base_token_type compatible with being overridden?
                         # e.g., an 'ID' can be a keyword, a 'NUMBER' typically cannot.

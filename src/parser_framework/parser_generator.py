@@ -3,12 +3,8 @@ from src.parser_framework.slr_parser import SLRParser
 import src.parser_framework.config as config 
 
 class ParserGenerator:
-    
     @staticmethod
     def _parse_grammar_from_string(grammar_str: str, reserved_words: list) -> ContextFreeGrammar:
-        """
-        Método auxiliar estático que processa uma string e retorna um objeto ContextFreeGrammar.
-        """
         productions_dict = {}
         non_terminals = set()
         all_symbols = set()
@@ -19,23 +15,47 @@ class ParserGenerator:
             if not line.strip():
                 continue
             
-            #TODO: modificar para ser literalmente 
-            # "<Não terminal> ::= <Corpo da produção>" 
-            # <S> ::= <S> or <A> | <A>
+            # Divide a linha em cabeçalho e corpo
+            parts = line.split('::=', 1)
+            if len(parts) < 2:
+                continue
+                
+            head_part = parts[0].strip()
+            body_str = parts[1].strip()
 
-            head, body_str = line.split('::=')
-            head = head.strip()
-            body_symbols = body_str.strip().split()
+            # Remove < > do cabeçalho se presentes
+            if head_part.startswith('<') and head_part.endswith('>'):
+                head = head_part[1:-1].strip()
+            else:
+                head = head_part
 
             non_terminals.add(head)
             if start_symbol is None:
                 start_symbol = head
             
-            all_symbols.update(body_symbols)
-            productions_dict.setdefault(head, []).append(body_symbols)
+            # Processa alternativas separadas por '|'
+            alternatives = body_str.split('|')
+            for alt in alternatives:
+                alt = alt.strip()
+                if not alt:
+                    symbols = []
+                else:
+                    tokens = alt.split()
+                    symbols = []
+                    for token in tokens:
+                        # Remove < > de não terminais no corpo
+                        if token.startswith('<') and token.endswith('>'):
+                            nt = token[1:-1].strip()
+                            symbols.append(nt)
+                            non_terminals.add(nt)  # Adiciona ao conjunto
+                        else:
+                            symbols.append(token)
+                productions_dict.setdefault(head, []).append(symbols)
+                all_symbols.update(symbols)  # Atualiza símbolos totais
 
+        # Calcula terminais = todos símbolos - não terminais
         terminals = all_symbols - non_terminals
-        # A lista de palavras reservadas também compõe os terminais 
+        # Adiciona palavras reservadas aos terminais
         terminals.update(reserved_words)
 
         return ContextFreeGrammar(

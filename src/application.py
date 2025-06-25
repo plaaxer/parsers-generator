@@ -12,6 +12,7 @@ class Application:
 
     def analyze(self, input_str):
         tokens = self.sg_framework.analyze(input_str)
+        print("Symbol table", self.symbol_table)
         # self.pg_framework.parse(tokens, verbose=True)
         pass
 
