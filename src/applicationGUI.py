@@ -90,7 +90,7 @@ class ApplicationGUI:
         lexical_mgmt_frame = ttk.Labelframe(middle_frame, text="Lexical Analyzer Management", padding="10")
         lexical_mgmt_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0,5))
 
-        ttk.Label(lexical_mgmt_frame, text="Available Analyzers:", style="Header.TLabel")\
+        ttk.Label(lexical_mgmt_frame, text="Available Scanners:", style="Header.TLabel")\
             .pack(pady=(0,5), anchor="w")
         self.lexical_analyzers_listbox = tk.Listbox(lexical_mgmt_frame, height=8, exportselection=False, font=('Courier', 10))
         self.lexical_analyzers_listbox.pack(fill=tk.BOTH, expand=True, pady=5)
@@ -216,7 +216,11 @@ class ApplicationGUI:
         save_dfas_to_file = self.save_dfa_var.get()
         self.application.sg_framework.set_save_to_file(save_dfas_to_file)
         
-        lexical_analyzer_name = self.application.sg_framework.generate_lexical_analyzer(filepath, lexical_analyzer_name_input)
+        try:
+            lexical_analyzer_name = self.application.sg_framework.generate_lexical_analyzer(filepath, lexical_analyzer_name_input)
+        except ValueError as e:
+            self.error(f"Error generating lexical analyzer: {e}")
+            return
         
         if lexical_analyzer_name:
             self._log_message(f"Lexical Analyzer '{lexical_analyzer_name}' generated successfully.", "SUCCESS")
@@ -254,8 +258,8 @@ class ApplicationGUI:
             for name in sorted(analyzers):
                 self.parsers_listbox.insert(tk.END, name)
         else:
-            self.parsers_listbox.insert(tk.END, "(No analyzers loaded)")
-        self._update_current_lexical_analyzer_status()
+            self.parsers_listbox.insert(tk.END, "(No parsers loaded)")
+        self._update_current_parser_status()
 
     def _get_selected_lexical_analyzer_name(self):
         selected_indices = self.lexical_analyzers_listbox.curselection()
@@ -344,7 +348,7 @@ class ApplicationGUI:
 
     def _delete_syntax_analyzer(self):
         syntax_analyzer_name = self._get_selected_syntax_analyzer_name()
-        if syntax_analyzer_name == "(No analyzers loaded)":
+        if syntax_analyzer_name == "(No parsers loaded)":
             self.error("No analyzers available to delete.")
             return
         if syntax_analyzer_name:
@@ -374,6 +378,13 @@ class ApplicationGUI:
             self.current_lexical_analyzer_status.set(f"Current Analyzer: {current_lexical_analyzer}")
         else:
             self.current_lexical_analyzer_status.set("Current Analyzer: None")
+
+    def _update_current_parser_status(self):
+        current_parser = self.application.pg_framework.get_current_parser()
+        if current_parser:
+            self.current_syntax_analyzer_status.set(f"Current Analyzer: {current_parser}")
+        else:
+            self.current_syntax_analyzer_status.set("Current Analyzer: None")
 
     def run(self):
         self.root.mainloop()

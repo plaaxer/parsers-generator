@@ -6,17 +6,15 @@ class PgFramework:
         self.application = application
         self.loaded_parsers = []
         self.current_parser = None
-        self.parsers = {}
 
     def generate(self, context_free_grammar_str: str, reserved_words: list, name: str = "Parser"):
         """Endpoint para gerar o parser SLR a partir de uma string de gramática e palavras reservadas."""
 
-        if self.parsers.get(name):
-            raise ValueError(
-                f"Parser com o nome '{name}' já existe. Escolha outro nome.")
+        for p in self.loaded_parsers:
+            if p.name == name:
+                raise ValueError(f"Parser com o nome '{name}' já existe. Escolha outro nome.")
 
-        grammar = ParserGenerator._parse_grammar_from_string(
-            context_free_grammar_str, reserved_words)
+        grammar = ParserGenerator._parse_grammar_from_string(context_free_grammar_str, reserved_words)
 
         print("\n--- Gramática Carregada e Estruturada ---")
         print(grammar)
@@ -26,7 +24,7 @@ class PgFramework:
         print("\n--- Analisador SLR Gerado ---")
         print(slr_parser)
 
-        self.parsers[name] = slr_parser
+        self.loaded_parsers.append(slr_parser)
         self.current_parser = slr_parser
 
     def parse(self, tokens: list, verbose: bool = False):
@@ -72,9 +70,3 @@ class PgFramework:
                 return True
         self.application.error(f"Analisador sintático '{analyzer_name}' não encontrado.")
         return False
-
-
-    def select_parser(self, name: str):
-        if name not in self.parsers:
-            raise ValueError(f"Parser com o nome '{name}' não encontrado.")
-        self.current_parser = self.parsers[name]

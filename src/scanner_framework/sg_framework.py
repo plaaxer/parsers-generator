@@ -18,6 +18,10 @@ class SgFramework:
 
     def generate_lexical_analyzer(self, ers_filename="ers.txt", name=config.LEXICAL_ANALYZER_DEFAULT_NAME) -> str | None:
 
+        for s in self.loaded_lexical_analyzers: 
+            if s.name == name:
+                raise ValueError(f"Scanner com o nome '{name}' já existe. Escolha outro nome.")
+
         lexical_analyzer = LexicalAnalyzer(name, self.application)
         parsed_regexs = utils.parse_entries(ers_filename)
 
@@ -41,8 +45,7 @@ class SgFramework:
 
         self.loaded_lexical_analyzers.append(lexical_analyzer)
         self.current_lexical_analyzer = lexical_analyzer
-        self.application.log("Analisador léxico gerado com sucesso.\nAnalisadores léxicos carregados: " +
-                             ", ".join([la.name for la in self.loaded_lexical_analyzers]))
+        self.application.log("Analisador léxico gerado com sucesso.\nAnalisadores léxicos carregados: " +", ".join([la.name for la in self.loaded_lexical_analyzers]))
         
         return lexical_analyzer.name
 
