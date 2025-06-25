@@ -19,7 +19,10 @@ class ParserGenerator:
             if not line.strip():
                 continue
             
+            #TODO: modificar para ser literalmente 
             # "<Não terminal> ::= <Corpo da produção>" 
+            # <S> ::= <S> or <A> | <A>
+
             head, body_str = line.split('::=')
             head = head.strip()
             body_symbols = body_str.strip().split()
