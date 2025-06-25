@@ -2,7 +2,7 @@ import os
 from src.scanner_framework.regex_processor import RegexProcessor
 from src.scanner_framework.lexical_analyzer import LexicalAnalyzer
 import src.scanner_framework.config as config
-import src.scanner_framework.utils as utils
+from src.scanner_framework.utils import parse_entries
 
 """"
 Esta classe será a interface do framework de geração de analisadores léxicos.
@@ -16,14 +16,14 @@ class SgFramework:
         self.current_lexical_analyzer = None
         self.save_to_file = True
 
-    def generate_lexical_analyzer(self, ers_filename="ers.txt", name=config.LEXICAL_ANALYZER_DEFAULT_NAME) -> str | None:
+    def generate_lexical_analyzer(self, ers_filename, name=config.LEXICAL_ANALYZER_DEFAULT_NAME) -> str | None:
 
         for s in self.loaded_lexical_analyzers: 
             if s.name == name:
                 raise ValueError(f"Scanner com o nome '{name}' já existe. Escolha outro nome.")
 
         lexical_analyzer = LexicalAnalyzer(name, self.application)
-        parsed_regexs = utils.parse_entries(ers_filename)
+        parsed_regexs = parse_entries(ers_filename)
 
         for key, value in parsed_regexs.items():
             if not value:

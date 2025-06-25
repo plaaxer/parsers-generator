@@ -1,8 +1,6 @@
 from src.parser_framework.context_free_grammar import ContextFreeGrammar
 from src.parser_framework.slr_parser import SLRParser
-
-EPSILON = 'ε'
-END_OF_INPUT = '$'
+import src.parser_framework.config as config 
 
 class ParserGenerator:
     
@@ -80,7 +78,7 @@ class ParserGenerator:
                         action_table[i][next_symbol] = ('shift', target_state)
                 else:
                     if head == new_start_symbol:
-                        action_table[i][END_OF_INPUT] = ('accept',)
+                        action_table[i][config.END_OF_INPUT] = ('accept',)
                     else:
                         prod_to_reduce = (head, body)
                         prod_index = productions_list.index(prod_to_reduce)
@@ -121,9 +119,9 @@ class ParserGenerator:
             for head, bodies in grammar.productions.items():
                 for body in bodies:
                     # Regra para produções com épsilon
-                    if body == (EPSILON,):
-                        if EPSILON not in first[head]:
-                            first[head].add(EPSILON)
+                    if body == (config.EPSILON,):
+                        if config.EPSILON not in first[head]:
+                            first[head].add(config.EPSILON)
                             changed = True
                         continue
                     
@@ -140,17 +138,17 @@ class ParserGenerator:
                         if symbol in grammar.non_terminals:
                             first_of_symbol = first[symbol]
                             # Adicionar tudo de First(symbol) exceto épsilon
-                            for f in first_of_symbol - {EPSILON}:
+                            for f in first_of_symbol - {config.EPSILON}:
                                 if f not in first[head]:
                                     first[head].add(f)
                                     changed = True
                             
                             # Se épsilon não está em First(symbol), parar
-                            if EPSILON not in first_of_symbol:
+                            if config.EPSILON not in first_of_symbol:
                                 break
                     else: # Loop completou sem break (todos os símbolos derivam épsilon)
-                        if EPSILON not in first[head]:
-                            first[head].add(EPSILON)
+                        if config.EPSILON not in first[head]:
+                            first[head].add(config.EPSILON)
                             changed = True
         return first
 
@@ -164,17 +162,17 @@ class ParserGenerator:
                 return result
             
             symbol_first = first_sets.get(symbol, set())
-            result.update(symbol_first - {EPSILON})
-            if EPSILON not in symbol_first:
+            result.update(symbol_first - {config.EPSILON})
+            if config.EPSILON not in symbol_first:
                 return result
         
-        result.add(EPSILON)
+        result.add(config.EPSILON)
         return result
 
     @staticmethod
     def _compute_follow_sets(grammar: ContextFreeGrammar, first_sets):
         follow = {nt: set() for nt in grammar.non_terminals}
-        follow[grammar.start_symbol].add(END_OF_INPUT)
+        follow[grammar.start_symbol].add(config.END_OF_INPUT)
         
         changed = True
         while changed:
@@ -191,13 +189,13 @@ class ParserGenerator:
                                     beta, first_sets, grammar.terminals
                                 )
                                 # Adicionar First(β) \ {ε} a Follow(B)
-                                for f in first_of_beta - {EPSILON}:
+                                for f in first_of_beta - {config.EPSILON}:
                                     if f not in follow[symbol]:
                                         follow[symbol].add(f)
                                         changed = True
                                 
                                 # Se ε ∈ First(β), adicionar Follow(A) a Follow(B)
-                                if EPSILON in first_of_beta:
+                                if config.EPSILON in first_of_beta:
                                     for f in follow[head]:
                                         if f not in follow[symbol]:
                                             follow[symbol].add(f)

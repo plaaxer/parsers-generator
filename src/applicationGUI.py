@@ -17,13 +17,13 @@ class ApplicationGUI:
         self.lexical_analyzer_name_entry_var = tk.StringVar()
         self.syntax_analyzer_name_var = tk.StringVar()
         self.save_dfa_var = tk.BooleanVar(value=False)
-        self.save_parse_tree_var = tk.BooleanVar(value=False)
         self.current_lexical_analyzer_status = tk.StringVar(value="Current Scanner: None")
         self.current_syntax_analyzer_status = tk.StringVar(value="Current Parser: None")
 
         self._setup_styles()
         self._create_widgets()
         self._update_scanners_list()
+        self._update_parsers_list()
 
     def _setup_styles(self):
         self.style = ttk.Style()
@@ -74,8 +74,6 @@ class ApplicationGUI:
         ttk.Label(syntax_setup_frame, text="Syntax Analyzer Name:").grid(row=1, column=0, padx=5, pady=5, sticky="w")
         self.syntax_analyzer_name_entry = ttk.Entry(syntax_setup_frame, textvariable=self.syntax_analyzer_name_var)
         self.syntax_analyzer_name_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
-        self.save_parse_tree_checkbutton = ttk.Checkbutton(syntax_setup_frame, text="Save Parse Trees", variable=self.save_parse_tree_var)
-        self.save_parse_tree_checkbutton.grid(row=1, column=2, padx=5, pady=5, sticky="w")
         self.generate_syntax_button = ttk.Button(syntax_setup_frame, text="⚙️ Generate Parser", command=self._generate_syntax_analyzer)
         self.generate_syntax_button.grid(row=1, column=3, padx=5, pady=5)
 
@@ -236,8 +234,35 @@ class ApplicationGUI:
             self._update_current_lexical_analyzer_status()
 
     def _generate_syntax_analyzer(self):
-        #TODO:
-        pass
+        filepath = self.glc_file_path.get()
+        if not filepath:
+            self.error("Please load a grammar file first.")
+            return
+
+        syntax_analyzer_name_input = self.syntax_analyzer_name_var.get().strip()
+        if not syntax_analyzer_name_input:
+            self.error("Please enter a name for the syntax analyzer.")
+            return
+
+        try:
+            syntax_analyzer_name = self.application.pg_framework.generate(filepath, syntax_analyzer_name_input)
+        except ValueError as e:
+            self.error(f"Error generating syntax analyzer: {e}")
+            return
+
+        if syntax_analyzer_name:
+            self._log_message(f"Syntax Analyzer '{syntax_analyzer_name}' generated successfully.", "SUCCESS")
+            self._update_parsers_list()
+            try:
+                idx = self.parsers_listbox.get(0, tk.END).index(syntax_analyzer_name)
+                self.parsers_listbox.selection_clear(0, tk.END)
+                self.parsers_listbox.selection_set(idx)
+                self.parsers_listbox.activate(idx)
+                self.parsers_listbox.see(idx)
+            except ValueError:
+                pass
+            self._update_current_parser_status()
+
 
     def _update_scanners_list(self):
         self.lexical_analyzers_listbox.delete(0, tk.END)

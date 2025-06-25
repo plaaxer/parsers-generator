@@ -1,7 +1,5 @@
 import pprint
-
-EPSILON = 'ε'
-END_OF_INPUT = '$'
+import src.parser_framework.config as config
 
 class SLRParser:
     """
@@ -21,7 +19,6 @@ class SLRParser:
         self.goto_table = parsing_table['goto']
         self.productions = parsing_table['productions']
         self.start_state = 0
-        self.end_of_input = '$'
 
     def parse(self, tokens, verbose=False):
         """
@@ -32,7 +29,7 @@ class SLRParser:
         :param verbose: Se True, imprime os passos da análise.
         """
         # Adiciona o marcador de fim de cadeia
-        input_stream = list(tokens) + [self.end_of_input]
+        input_stream = list(tokens) + [config.end_of_input]
         
         stack = [self.start_state]
         input_ptr = 0
@@ -71,7 +68,7 @@ class SLRParser:
                 head, body = self.productions[prod_index]
                 
                 # Pop da pilha (0 se for épsilon, len(body) caso contrário)
-                if body != (EPSILON,):
+                if body != (config.EPSILON,):
                     for _ in body:
                         stack.pop()
                 
@@ -96,7 +93,7 @@ class SLRParser:
     def __repr__(self):
         prod_str_list = []
         for i, (head, body) in enumerate(self.productions):
-            body_str = ' '.join(body) if body else EPSILON
+            body_str = ' '.join(body) if body else config.EPSILON
             prod_str_list.append(f"  {i}: {head} -> {body_str}")
         
         formatted_productions = "\n".join(prod_str_list)
