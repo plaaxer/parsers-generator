@@ -34,6 +34,8 @@ class PgFramework:
         self.loaded_parsers.append(slr_parser)
         self.current_parser = slr_parser
 
+        return self.current_parser.name 
+
     def parse(self, tokens: list, verbose: bool = False):
 
         if not self.current_parser:

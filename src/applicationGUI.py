@@ -144,6 +144,9 @@ class ApplicationGUI:
         ttk.Label(analysis_frame, textvariable=self.current_lexical_analyzer_status,
                   style="Status.TLabel").pack(pady=5, anchor="w")
 
+        ttk.Label(analysis_frame, textvariable=self.current_syntax_analyzer_status,
+              style="Status.TLabel").pack(pady=(0, 5), anchor="w")
+
 
         # --- Output & Logs ---
         log_frame = ttk.Labelframe(main_frame, text="Output & Logs", padding="10")
@@ -253,6 +256,7 @@ class ApplicationGUI:
         if syntax_analyzer_name:
             self._log_message(f"Syntax Analyzer '{syntax_analyzer_name}' generated successfully.", "SUCCESS")
             self._update_parsers_list()
+            print("Current parsers:", self.application.pg_framework.get_loaded_parsers())
             try:
                 idx = self.parsers_listbox.get(0, tk.END).index(syntax_analyzer_name)
                 self.parsers_listbox.selection_clear(0, tk.END)
@@ -378,7 +382,7 @@ class ApplicationGUI:
             return
         if syntax_analyzer_name:
             if messagebox.askyesno("Confirm Deletion", f"Are you sure you want to delete the syntax analyzer '{syntax_analyzer_name}'?"):
-                if self.application.sg_framework.delete_lexical_analyzer(syntax_analyzer_name):
+                if self.application.pg_framework.delete_parser(syntax_analyzer_name):
                     self._log_message(f"Analyzer '{syntax_analyzer_name}' deleted.", "INFO")
                 self._update_scanners_list()
         else:
