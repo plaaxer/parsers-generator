@@ -1,16 +1,16 @@
-from src.lexical_framework.gal_framework import GalFramework
 import tkinter as tk
+from src.application import Application
 from tkinter import ttk, filedialog, scrolledtext, messagebox
 
 
+
 class ApplicationGUI:
-    def __init__(self, root):
+    def __init__(self, root, application: Application):
         self.root = root
         self.root.title("Lexical Analyzer Generator GUI")
         self.root.geometry("800x700")
 
-    
-        self.framework = GalFramework(self)
+        self.application = application
 
         self.er_file_path = tk.StringVar()
         self.analyzer_name_entry_var = tk.StringVar()
@@ -150,9 +150,9 @@ class ApplicationGUI:
             return
         
         save_dfas_to_file = self.save_dfa_var.get()
-        self.framework.set_save_to_file(save_dfas_to_file)
+        self.application.ag_framework.set_save_to_file(save_dfas_to_file)
         
-        analyzer_name = self.framework.generate_lexical_analyzer(filepath, analyzer_name_input)
+        analyzer_name = self.application.ag_framework.generate_lexical_analyzer(filepath, analyzer_name_input)
         
         if analyzer_name:
             self._log_message(f"Lexical Analyzer '{analyzer_name}' generated successfully.", "SUCCESS")
@@ -169,7 +169,7 @@ class ApplicationGUI:
 
     def _update_analyzers_list(self):
         self.analyzers_listbox.delete(0, tk.END)
-        analyzers = self.framework.get_loaded_lexical_analyzers()
+        analyzers = self.application.ag_framework.get_loaded_lexical_analyzers()
         print("Loaded analyzers:", analyzers)
         if analyzers:
             for name in sorted(analyzers):
@@ -191,7 +191,7 @@ class ApplicationGUI:
             self.error("No analyzers available to set as current.")
             return
         if analyzer_name:
-            if self.framework.set_current_lexical_analyzer(analyzer_name):
+            if self.application.ag_framework.set_current_lexical_analyzer(analyzer_name):
                 self._log_message(f"'{analyzer_name}' is now the current analyzer.", "INFO")
             self._update_current_analyzer_status()
         else:
@@ -204,7 +204,7 @@ class ApplicationGUI:
             self.error("No analyzers available to show info for.")
             return
         if analyzer_name:
-            info = self.framework.get_lexical_analyzer_info(analyzer_name)
+            info = self.application.ag_framework.get_lexical_analyzer_info(analyzer_name)
             if info:
                 self.log(info)
             else:
@@ -219,7 +219,7 @@ class ApplicationGUI:
             return
         if analyzer_name:
             if messagebox.askyesno("Confirm Deletion", f"Are you sure you want to delete the lexical analyzer '{analyzer_name}'?"):
-                if self.framework.delete_lexical_analyzer(analyzer_name):
+                if self.application.ag_framework.delete_lexical_analyzer(analyzer_name):
                     self._log_message(f"Analyzer '{analyzer_name}' deleted.", "INFO")
                 self._update_analyzers_list()
         else:
@@ -228,18 +228,18 @@ class ApplicationGUI:
 
     def _analyze_string(self):
         input_str = self.input_string_entry.get()
-        if not self.framework.get_current_lexical_analyzer():
+        if not self.application.ag_framework.get_current_lexical_analyzer():
             self.error("No current lexical analyzer selected. Please generate or set one.")
             return
         if not input_str:
             pass
 
-        tokens = self.framework.analyze(input_str)
+        tokens = self.application.ag_framework.analyze(input_str)
 
         self._update_current_analyzer_status()
 
     def _update_current_analyzer_status(self):
-        current_analyzer = self.framework.get_current_lexical_analyzer()
+        current_analyzer = self.application.ag_framework.get_current_lexical_analyzer()
         if current_analyzer:
             self.current_analyzer_status.set(f"Current Analyzer: {current_analyzer}")
         else:

@@ -1,6 +1,5 @@
 from src.lexical_framework.automatas.non_deterministic_automata import NonDeterministicFiniteAutomata
 from src.lexical_framework.automatas.deterministic_automata import DeterministicFiniteAutomata
-from src.lexical_framework.symbol_table import SymbolTable
 
 
 
@@ -15,16 +14,6 @@ class LexicalAnalyzer():
         self.dfa = None
         self.dfa_accept_state_to_token_type_map = {}
         self.has_errors = False
-        self.symbol_table = self.initialize_symbol_table()
-        self.symbol_table.add("PR_EXEMPLO", "EXEMPLO_PALAVRA_RESERVADA")
-        self.symbol_table.add("if", "PR_IF")
-
-    def initialize_symbol_table(self):
-        """
-        Initializes the symbol table of the lexical analyzer.
-        Reserved words should be added here or by the user of the framework.
-        """
-        return SymbolTable()
 
     def add_dfa(self, key, dfa):
         """
@@ -167,8 +156,7 @@ class LexicalAnalyzer():
                             possible_tokens_for_T[token_key] = priority
 
             if possible_tokens_for_T:
-                best_token_key = min(possible_tokens_for_T,
-                                     key=possible_tokens_for_T.get)
+                best_token_key = min(possible_tokens_for_T,key=possible_tokens_for_T.get)
                 self.dfa_accept_state_to_token_type_map[current_dfa_state_T] = best_token_key
 
             for symbol in nfa.alphabet:
@@ -298,7 +286,7 @@ class LexicalAnalyzer():
                 else:
                     # Check symbol table for reserved words/specific lexemes
                     # This allows "if" (base_token_type 'ID') to become 'PR_IF'
-                    overriding_token_type = self.symbol_table.lookup(
+                    overriding_token_type = self.application.symbol_table.lookup(
                         final_lexeme)
                     if overriding_token_type:
                         # Potentially add a check: is base_token_type compatible with being overridden?

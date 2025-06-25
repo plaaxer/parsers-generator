@@ -1,11 +1,13 @@
-from src.lexical_framework.gal_framework import GalFramework
+from src.symbol_table import SymbolTable
+from src.lexical_framework.gal_framework import AgFramework
 from src.parser_framework.pg_framework import PgFramework
 
 
 class Application:
     def __init__(self):
-        self.framework = GalFramework(self)
+        self.ag_framework = AgFramework(self)
         self.pg_framework = PgFramework(self)
+        self.symbol_table = SymbolTable()
         self.run()
 
     def run(self):

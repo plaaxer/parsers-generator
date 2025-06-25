@@ -9,7 +9,7 @@ Esta classe será a interface do framework de geração de analisadores léxicos
 No caso, ao menos por enquanto, Application será algum tipo de CLI, mas podemos adicionar uma interface gráfica depois.
 """
 
-class GalFramework:
+class AgFramework:
     def __init__(self, application):
         self.application = application
         self.loaded_lexical_analyzers = []
