@@ -7,7 +7,6 @@ from src.scanner_framework.utils import parse_entries
 
 """"
 Esta classe será a interface do framework de geração de analisadores léxicos.
-No caso, ao menos por enquanto, Application será algum tipo de CLI, mas podemos adicionar uma interface gráfica depois.
 """
 
 class SgFramework:
@@ -51,6 +50,8 @@ class SgFramework:
         return lexical_analyzer.name
 
     def analyze(self, text, lexical_analyzer_name=None) -> List[Tuple[str, str]]:
+        lexical_analyzer = None
+
         if lexical_analyzer_name is None:
             lexical_analyzer = self.current_lexical_analyzer
 

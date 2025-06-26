@@ -71,8 +71,8 @@ class PgFramework:
         for la in self.loaded_parsers:
             if la.name == analyzer_name:
                 self.loaded_parsers.remove(la)
-                if self.current_lexical_analyzer == la:
-                    self.current_lexical_analyzer = None
+                if self.current_parser == la:
+                    self.current_parser = None
                 self.application.log(f"Analisador sintático '{analyzer_name}' removido com sucesso.")
                 return True
         self.application.error(f"Analisador sintático '{analyzer_name}' não encontrado.")

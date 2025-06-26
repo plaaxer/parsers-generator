@@ -1,0 +1,8 @@
+<stmt> ::= <if_stmt> | <assignment>
+<if_stmt> ::= IF LPAREN <condition> RPAREN LBRACE <stmt_list> RBRACE <else_part>
+<else_part> ::= ELSE LBRACE <stmt_list> RBRACE |
+<condition> ::= <expr> <comp_op> <expr>
+<expr> ::= ID | NUM
+<comp_op> ::= EQ | NEQ | LT | GT
+<stmt_list> ::= <stmt> | <stmt_list> <stmt>
+<assignment> ::= ID EQ NUM SEMICOLON

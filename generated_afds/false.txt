@@ -1,0 +1,9 @@
+6
+D0
+D5
+f,a,s,l,e
+D0,f,D1
+D1,a,D2
+D2,l,D3
+D3,s,D4
+D4,e,D5
