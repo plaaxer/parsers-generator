@@ -1,4 +1,5 @@
 import pprint
+from typing import List, Tuple
 import src.parser_framework.config as config
 
 class SLRParser:
@@ -20,39 +21,47 @@ class SLRParser:
         self.productions = parsing_table['productions']
         self.start_state = 0
 
-    def parse(self, tokens, verbose=False):
+    def parse(self, tokens: List[Tuple[str, str]], verbose: bool = False):
         """
-        Processa uma lista de tokens de acordo com a gramática e a tabela SLR.
+        Processa uma lista de tuplas (lexeme, token_type) de acordo com a gramática e a tabela SLR.
         Retorna True se a cadeia for aceita, levanta um ValueError em caso de erro.
         
-        :param tokens: Uma lista de strings representando os tokens da entrada.
+        :param tokens: Uma lista de tuplas (lexeme, token_type) representando os tokens da entrada.
         :param verbose: Se True, imprime os passos da análise.
         """
-        # Adiciona o marcador de fim de cadeia
-        input_stream = list(tokens) + [config.end_of_input]
+        # --- ETAPA DE PRÉ-PROCESSAMENTO DA ENTRADA ---
+        # Extrai os tipos de token para usar na lógica do parser
+        token_types = [token[1] for token in tokens] + [config.END_OF_INPUT]
+        # Mantém os lexemas originais para logs e mensagens de erro
+        lexemes = [token[0] for token in tokens] + [config.END_OF_INPUT]
         
         stack = [self.start_state]
         input_ptr = 0
 
         if verbose:
-            print(f"{'PILHA':<30} {'ENTRADA':<30} {'AÇÃO'}")
-            print("-" * 70)
+            print(f"{'PILHA':<30} {'ENTRADA':<40} {'AÇÃO'}")
+            print("-" * 80)
 
         while True:
             current_state = stack[-1]
-            current_token = input_stream[input_ptr]
+            # Usa o TIPO de token para a lógica da tabela
+            current_token_type = token_types[input_ptr]
             
             if verbose:
                 stack_str = ' '.join(map(str, stack))
-                input_str = ' '.join(input_stream[input_ptr:])
-                print(f"{stack_str:<30} {input_str:<30}", end="")
+                # Mostra os LEXEMAS originais na fita de entrada para melhor legibilidade
+                input_str = ' '.join(lexemes[input_ptr:])
+                print(f"{stack_str:<30} {input_str:<40}", end="")
 
-            # Consultar a tabela de ação
-            action = self.action_table[current_state].get(current_token)
+            # Consultar a tabela de ação usando o TIPO do token
+            action = self.action_table[current_state].get(current_token_type)
 
             if action is None:
+                # --- MENSAGEM DE ERRO MELHORADA ---
+                # Usa o lexema original para uma mensagem mais clara
+                unexpected_lexeme = lexemes[input_ptr]
                 raise ValueError(
-                    f"Erro de sintaxe: token inesperado '{current_token}' no estado {current_state}."
+                    f"Erro de sintaxe: token inesperado '{unexpected_lexeme}' (tipo: {current_token_type}) no estado {current_state}."
                 )
 
             # --- Ação de SHIFT ---

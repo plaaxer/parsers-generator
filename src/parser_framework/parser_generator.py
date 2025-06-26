@@ -4,7 +4,7 @@ import src.parser_framework.config as config
 
 class ParserGenerator:
     @staticmethod
-    def _parse_grammar_from_string(grammar_str: str, reserved_words: list) -> ContextFreeGrammar:
+    def _parse_grammar_from_string(grammar_str: str) -> ContextFreeGrammar:
         productions_dict = {}
         non_terminals = set()
         all_symbols = set()
@@ -55,8 +55,6 @@ class ParserGenerator:
 
         # Calcula terminais = todos símbolos - não terminais
         terminals = all_symbols - non_terminals
-        # Adiciona palavras reservadas aos terminais
-        terminals.update(reserved_words)
 
         return ContextFreeGrammar(
             non_terminals=non_terminals,

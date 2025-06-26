@@ -1,6 +1,7 @@
 import os
 from src.scanner_framework.regex_processor import RegexProcessor
 from src.scanner_framework.lexical_analyzer import LexicalAnalyzer
+from typing import List, Tuple
 import src.scanner_framework.config as config
 from src.scanner_framework.utils import parse_entries
 
@@ -49,7 +50,7 @@ class SgFramework:
         
         return lexical_analyzer.name
 
-    def analyze(self, text, lexical_analyzer_name=None):
+    def analyze(self, text, lexical_analyzer_name=None) -> List[Tuple[str, str]]:
         if lexical_analyzer_name is None:
             lexical_analyzer = self.current_lexical_analyzer
 
@@ -62,7 +63,7 @@ class SgFramework:
         
         if lexical_analyzer is None:
             self.application.error("Nenhum analisador léxico carregado.")
-            return
+            return []
 
         try:
             result = lexical_analyzer.process(text)
@@ -70,6 +71,8 @@ class SgFramework:
             return result
         except Exception as e:
             self.application.error(f"Erro ao analisar o texto: {e}")
+
+        return []
 
     def _process_regular_expression(self, regex, er_name="dfa"):
             try:

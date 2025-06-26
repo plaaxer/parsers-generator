@@ -1,5 +1,6 @@
 from src.scanner_framework.automatas.non_deterministic_automata import NonDeterministicFiniteAutomata
 from src.scanner_framework.automatas.deterministic_automata import DeterministicFiniteAutomata
+from typing import List, Tuple
 
 
 
@@ -197,7 +198,7 @@ class LexicalAnalyzer():
             accept_states=dfa_actual_accept_states
         )
 
-    def process(self, input_stream):
+    def process(self, input_stream) -> List[Tuple[str, str]]:
         """
         Processes the input_stream using the generated DFA to produce a list of tokens.
         Each token is a tuple: (lexeme, token_type) or (lexeme, "erro!").
@@ -283,17 +284,17 @@ class LexicalAnalyzer():
                         (final_lexeme, "erro!_TIPO_INTERNO_DESCONHECIDO"))
                     self.application.error(
                         f"Erro Interno: Lexema '{final_lexeme}' aceito pelo estado {final_dfa_accept_state} que não está no mapa de tipos.")
-                # else:
-                #     # Check symbol table for reserved words/specific lexemes
-                #     # This allows "if" (base_token_type 'ID') to become 'PR_IF'
-                #     overriding_token_type = self.application.symbol_table.lookup(final_lexeme)
-                #     if overriding_token_type:
-                #         # Potentially add a check: is base_token_type compatible with being overridden?
-                #         # e.g., an 'ID' can be a keyword, a 'NUMBER' typically cannot.
-                #         # For now, assume symbol table lookup takes precedence if valid.
-                #         tokens.append((final_lexeme, overriding_token_type))
-                #     else:
-                #         tokens.append((final_lexeme, base_token_type))
+                else:
+                    # # Check symbol table for reserved words/specific lexemes
+                    # # This allows "if" (base_token_type 'ID') to become 'PR_IF'
+                    # overriding_token_type = self.application.symbol_table.lookup(final_lexeme)
+                    # if overriding_token_type:
+                    #     # Potentially add a check: is base_token_type compatible with being overridden?
+                    #     # e.g., an 'ID' can be a keyword, a 'NUMBER' typically cannot.
+                    #     # For now, assume symbol table lookup takes precedence if valid.
+                    #     tokens.append((final_lexeme, overriding_token_type))
+                    # else:
+                    tokens.append((final_lexeme, base_token_type))
 
                 current_pos = next_pos_after_lexeme  # Advance main pointer
 

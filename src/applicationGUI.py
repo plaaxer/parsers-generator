@@ -5,12 +5,12 @@ from tkinter import ttk, filedialog, scrolledtext, messagebox
 
 
 class ApplicationGUI:
-    def __init__(self, root, application: Application):
+    def __init__(self, root):
         self.root = root
         self.root.title("Lexical Analyzer and Syntax Analyzer GUI")
         self.root.geometry("1000x900")
 
-        self.application = application
+        self.application = Application(gui_logger=self)
 
         self.er_file_path = tk.StringVar()
         self.glc_file_path = tk.StringVar()
@@ -256,7 +256,6 @@ class ApplicationGUI:
         if syntax_analyzer_name:
             self._log_message(f"Syntax Analyzer '{syntax_analyzer_name}' generated successfully.", "SUCCESS")
             self._update_parsers_list()
-            print("Current parsers:", self.application.pg_framework.get_loaded_parsers())
             try:
                 idx = self.parsers_listbox.get(0, tk.END).index(syntax_analyzer_name)
                 self.parsers_listbox.selection_clear(0, tk.END)

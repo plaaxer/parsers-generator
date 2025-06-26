@@ -1,5 +1,6 @@
 from src.parser_framework.parser_generator import ParserGenerator
 import src.parser_framework.config as config
+from typing import List, Tuple
 from src.parser_framework.utils import read_file_as_string
 
 class PgFramework:
@@ -13,15 +14,12 @@ class PgFramework:
     def generate(self, glc_filename: str, name=config.SYNTAX_ANALYZER_DEFAULT_NAME):
         """Endpoint para gerar o parser SLR a partir de uma gramática e palavras reservadas."""
 
-        # TODO:
-        reserved_words = []
-
         for p in self.loaded_parsers:
             if p.name == name:
                 raise ValueError(f"Parser com o nome '{name}' já existe. Escolha outro nome.")
 
         grammar_str = read_file_as_string(glc_filename)
-        grammar = ParserGenerator._parse_grammar_from_string(grammar_str, reserved_words)
+        grammar = ParserGenerator._parse_grammar_from_string(grammar_str)
 
         print("\n--- Gramática Carregada e Estruturada ---")
         print(grammar)
@@ -36,7 +34,7 @@ class PgFramework:
 
         return self.current_parser.name 
 
-    def parse(self, tokens: list, verbose: bool = False):
+    def parse(self, tokens: List[Tuple[str, str]], verbose: bool = False):
 
         if not self.current_parser:
             raise ValueError("Nenhum parser selecionado.")
